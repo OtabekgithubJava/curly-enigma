@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/Full-Stack-Auth.props" />
+</Project>
