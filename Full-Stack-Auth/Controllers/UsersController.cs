@@ -28,14 +28,14 @@ public class UsersController : ControllerBase
 
     [HttpPost]
     [AllowAnonymous]
-    public async Task<IActionResult> Register([FromForm] RegisterDTO registerDto)
+    public async Task<IActionResult> Register(RegisterDTO registerDto)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var user = new AppUser
+        var user = new AppUser()
         {
             FullName = registerDto.FullName,
             UserName = registerDto.Email,
@@ -61,7 +61,7 @@ public class UsersController : ControllerBase
 
     [HttpPost]
     [AllowAnonymous]
-    public async Task<ActionResult<AuthDTO>> Login([FromForm] LoginDTO loginDto)
+    public async Task<ActionResult<AuthDTO>> Login( LoginDTO loginDto)
     {
         var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
@@ -98,5 +98,53 @@ public class UsersController : ControllerBase
         
         return Ok(result);
     }
+    
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteUser(string id)
+    {
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        var result = await _userManager.DeleteAsync(user);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return NoContent();
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateUser(string id, UpdateUserDTO updateUserDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var user = await _userManager.FindByIdAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        user.FullName = updateUserDto.FullName;
+        user.Age = updateUserDto.Age;
+        user.Status = updateUserDto.Status;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            return BadRequest(result.Errors);
+        }
+
+        return Ok(user);
+    }
+
     
 }
